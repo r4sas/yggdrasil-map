@@ -58,6 +58,11 @@ def handleResponse(publicKey, data):
   if 'response' in dhtInfo:
     for _,v in dhtInfo['response'].iteritems():
       if 'keys' in v:
+        dht = v['keys']
+        for key in dht:
+          if key in visited: continue
+          if key in timedout: continue
+          rumored.add(key)
         out['dht'] = v['keys']
   nodeInfo = doRequest('{{"keepalive":true, "request":"getNodeInfo", "key":"{}"}}'.format(publicKey))
   if 'response' in nodeInfo:
