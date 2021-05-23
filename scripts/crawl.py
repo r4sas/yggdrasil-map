@@ -94,7 +94,7 @@ for k,v in selfInfo['response']['self'].iteritems(): rumored.add(v['key'])
 print '{"yggnodes": {'
 while len(rumored) > 0:
   for k in rumored:
-    handleNodeInfoResponse(k, doRequest(getNodeInfoRequest(v['key'])))
+    handleNodeInfoResponse(k, doRequest(getNodeInfoRequest(k)))
     break
   rumored.remove(k)
 print '\n}}'

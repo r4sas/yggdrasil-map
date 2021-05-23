@@ -1,6 +1,4 @@
 #!/usr/bin/env python
-from flask import Config
-from database import NodeDB
 import graphPlotter
 import cgi
 
@@ -35,9 +33,16 @@ def generate_graph(time_limit=60*60*3):
     data = json.loads(response.read())["yggnodes"]
 
     toAdd = []
-    for ip in data:
-      info = NodeInfo(ip, data[ip][0])
-      if len(data[ip]) >= 3: info.label = data[ip][2]
+    for key in data:
+      if 'address' not in data[key] or 'coords' not in data[key]: continue
+      ip = data[key]['address']
+      coords = data[key]['coords']
+      info = NodeInfo(ip, coords)
+      if 'nodeinfo' in data[key]:
+        if 'name' in data[key]['nodeinfo']:
+          label = data[key]['nodeinfo']['name']
+          if type(label) == str and len(label) <= 32:
+            info.label = label
       info.label = cgi.escape(info.label)
       toAdd.append(info)
 
@@ -67,17 +72,6 @@ def generate_graph(time_limit=60*60*3):
 
     with open('static/graph.json', 'w') as f:
         f.write(js)
-
-
-def load_graph_from_db(time_limit):
-    config = Config('./')
-    config.from_pyfile('web_config.cfg')
-
-    with NodeDB(config) as db:
-        nodes = db.get_nodes(time_limit)
-        edges = db.get_edges(nodes, 60*60*24*7)
-        return (nodes, edges)
-
 
 if __name__ == '__main__':
     generate_graph()
