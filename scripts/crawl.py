@@ -19,13 +19,13 @@ def getNodeInfoRequest(key):
   return '{{"keepalive":true, "request":"getNodeInfo", "key":"{}"}}'.format(key)
 
 def getSelfRequest(key):
-  return '{{"keepalive":true, "request":"debugGetSelf", "key":"{}"}}'.format(key)
+  return '{{"keepalive":true, "request":"debug_remoteGetSelf", "key":"{}"}}'.format(key)
 
 def getPeersRequest(key):
-  return '{{"keepalive":true, "request":"debugGetPeers", "key":"{}"}}'.format(key)
+  return '{{"keepalive":true, "request":"debug_remoteGetPeers", "key":"{}"}}'.format(key)
 
 def getDHTRequest(key):
-  return '{{"keepalive":true, "request":"debugGetDHT", "key":"{}"}}'.format(key)
+  return '{{"keepalive":true, "request":"debug_remoteGetDHT", "key":"{}"}}'.format(key)
 
 def doRequest(req):
   try:
