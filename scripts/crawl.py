@@ -31,43 +31,43 @@ def doRequest(req):
 visited = set() # Add nodes after a successful lookup response
 rumored = set() # Add rumors about nodes to ping
 timedout = set()
-def handleResponse(address, data):
+def handleResponse(publicKey, data):
   global visited
   global rumored
   global timedout
-  if address in visited: return
+  if publicKey in visited: return
   if not data: return
   if 'response' not in data: return
-  for k,v in data['response'].iteritems():
+  out = dict()
+  for addr,v in data['response'].iteritems():
     if 'keys' not in v: continue
-    keys = v['keys']
-    for key in keys:
+    peers = v['keys']
+    for key in peers:
       if key in visited: continue
       if key in timedout: continue
       rumored.add(key)
-  selfInfo = doRequest('{{"keepalive":true, "request":"debugGetSelf", "key":"{}"}}'.format(address))
-  if 'response' not in selfInfo: return
-  coords = None
-  for _,v in selfInfo['response'].iteritems():
-    if 'Coords' not in v: continue
-    coords = str(v['Coords'])
+    out['address'] = addr
+    out['peers'] = peers
     break
-  if coords == None: return
-  nodename = None
-  nodeinfo = doRequest('{{"keepalive":true, "request":"getNodeInfo", "key":"{}"}}'.format(address))
-  try:
-    if nodeinfo and 'response' in nodeinfo and 'nodeinfo' in nodeinfo['response'] and 'name' in nodeinfo['response']['nodeinfo']:
-      nodename = '"' + str(nodeinfo['response']['nodeinfo']['name']) + '"'
-  except:
-    pass
-  now = time.time()
+  selfInfo = doRequest('{{"keepalive":true, "request":"debugGetSelf", "key":"{}"}}'.format(publicKey))
+  if 'response' in selfInfo:
+    for _,v in selfInfo['response'].iteritems():
+      if 'coords' in v:
+        out['coords'] = v['coords']
+  dhtInfo = doRequest('{{"keepalive":true, "request":"debugGetDHT", "key":"{}"}}'.format(key))
+  if 'response' in dhtInfo:
+    for _,v in dhtInfo['response'].iteritems():
+      if 'keys' in v:
+        out['dht'] = v['keys']
+  nodeInfo = doRequest('{{"keepalive":true, "request":"getNodeInfo", "key":"{}"}}'.format(publicKey))
+  if 'response' in nodeInfo:
+    for _,v in nodeInfo['response'].iteritems():
+      out['nodeinfo'] = v
+  out['time'] = time.time()
   if len(visited) > 0: sys.stdout.write(",\n")
-  if nodename:
-    sys.stdout.write('"{}": ["{}", {}, {}]'.format(address, coords, int(now), nodename))
-  else:
-    sys.stdout.write('"{}": ["{}", {}]'.format(address, coords, int(now)))
+  sys.stdout.write('"{}": {}'.format(publicKey, json.dumps(out)))
   sys.stdout.flush()
-  visited.add(address)
+  visited.add(publicKey)
 # End handleResponse
 
 # Get self info
