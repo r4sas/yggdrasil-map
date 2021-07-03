@@ -40,8 +40,8 @@ def generate_graph(time_limit=60*60*3):
       info = NodeInfo(ip, coords)
       if 'nodeinfo' in data[key]:
         if 'name' in data[key]['nodeinfo']:
-          label = data[key]['nodeinfo']['name']
-          if type(label) == str and len(label) <= 32:
+          label = str(data[key]['nodeinfo']['name'])
+          if len(label) <= 32:
             info.label = label
       info.label = cgi.escape(info.label)
       toAdd.append(info)
