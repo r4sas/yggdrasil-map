@@ -38,11 +38,13 @@ def generate_graph(time_limit=60*60*3):
       ip = data[key]['address']
       coords = data[key]['coords']
       info = NodeInfo(ip, coords)
-      if 'nodeinfo' in data[key]:
-        if 'name' in data[key]['nodeinfo']:
-          label = str(data[key]['nodeinfo']['name'])
-          if len(label) <= 32:
-            info.label = label
+      try:
+        if 'nodeinfo' in data[key]:
+          if 'name' in data[key]['nodeinfo']:
+            label = str(data[key]['nodeinfo']['name'])
+            if len(label) <= 32:
+              info.label = label
+      except: pass
       info.label = cgi.escape(info.label)
       toAdd.append(info)
 

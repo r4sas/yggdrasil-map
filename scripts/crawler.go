@@ -84,10 +84,10 @@ func doRumor(key string, out chan rumorResult) {
 		results := make(map[string]interface{})
 		if res, ok := getNodeInfo(key)["response"]; ok {
 			for addr, v := range res.(map[string]interface{}) {
-        vm, ok := v.(map[string]interface{})
-        if !ok {
-          return
-        }
+				vm, ok := v.(map[string]interface{})
+				if !ok {
+					return
+				}
 				results["address"] = addr
 				results["nodeinfo"] = vm
 			}
