@@ -12,6 +12,8 @@ var waitgroup sync.WaitGroup
 var visited sync.Map
 var rumored sync.Map
 
+const MAX_RETRY = 3
+
 func dial() (net.Conn, error) {
 	return net.DialTimeout("unix", "/var/run/yggdrasil.sock", time.Second)
 }
@@ -29,22 +31,31 @@ func doRequest(request map[string]interface{}) map[string]interface{} {
 	if err != nil {
 		panic(err)
 	}
-	sock, err := dial()
-	if err != nil {
-		panic(err)
-	}
-	if _, err = sock.Write(req); err != nil {
-		panic(err)
-	}
-	bs := make([]byte, 65535)
-	n, err := sock.Read(bs)
-	if err != nil {
-		panic(bs)
-	}
-	bs = bs[:n]
 	var res map[string]interface{}
-	if err = json.Unmarshal(bs, &res); err != nil {
-		panic(err)
+	for idx := 0; idx < MAX_RETRY; idx++ {
+		sock, err := dial()
+		if err != nil {
+			panic(err)
+		}
+		if _, err = sock.Write(req); err != nil {
+			panic(err)
+		}
+		bs := make([]byte, 65535)
+		n, err := sock.Read(bs)
+		if err != nil {
+			panic(bs)
+		}
+		bs = bs[:n]
+		if err = json.Unmarshal(bs, &res); err != nil {
+			panic(err)
+		}
+		// TODO parse res, check if there's an error
+		if res, ok := res["response"]; ok {
+			if _, isIn := res.(map[string]interface{})["error"]; isIn {
+				continue
+			}
+		}
+		break
 	}
 	return res
 }
