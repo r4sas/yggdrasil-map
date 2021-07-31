@@ -13,6 +13,13 @@ var visited sync.Map
 var rumored sync.Map
 
 const MAX_RETRY = 3
+const N_PARALLEL_REQ = 32
+
+var semaphore chan struct{}
+
+func init() {
+  semaphore = make(chan struct{}, N_PARALLEL_REQ)
+}
 
 func dial() (net.Conn, error) {
 	return net.DialTimeout("unix", "/var/run/yggdrasil.sock", time.Second)
@@ -85,6 +92,8 @@ func doRumor(key string, out chan rumorResult) {
 	waitgroup.Add(1)
 	go func() {
 		defer waitgroup.Done()
+		semaphore<-struct{}{}
+		defer func() { <-semaphore }()
 		if _, known := rumored.LoadOrStore(key, true); known {
 			return
 		}

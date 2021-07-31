@@ -42,7 +42,7 @@ def generate_graph(time_limit=60*60*3):
         if 'nodeinfo' in data[key]:
           if 'name' in data[key]['nodeinfo']:
             label = str(data[key]['nodeinfo']['name'])
-            if len(label) <= 32:
+            if len(label) <= 64:
               info.label = label
       except: pass
       info.label = cgi.escape(info.label)
