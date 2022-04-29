@@ -18,7 +18,7 @@ const N_PARALLEL_REQ = 32
 var semaphore chan struct{}
 
 func init() {
-  semaphore = make(chan struct{}, N_PARALLEL_REQ)
+	semaphore = make(chan struct{}, N_PARALLEL_REQ)
 }
 
 func dial() (net.Conn, error) {
@@ -48,12 +48,17 @@ func doRequest(request map[string]interface{}) map[string]interface{} {
 			panic(err)
 		}
 		bs := make([]byte, 65535)
+		deadline := time.Now().Add(6 * time.Second)
+		sock.SetReadDeadline(deadline)
 		n, err := sock.Read(bs)
+		sock.Close()
 		if err != nil {
+			continue
 			panic(bs)
 		}
 		bs = bs[:n]
 		if err = json.Unmarshal(bs, &res); err != nil {
+			return nil
 			panic(err)
 		}
 		// TODO parse res, check if there's an error
@@ -92,7 +97,7 @@ func doRumor(key string, out chan rumorResult) {
 	waitgroup.Add(1)
 	go func() {
 		defer waitgroup.Done()
-		semaphore<-struct{}{}
+		semaphore <- struct{}{}
 		defer func() { <-semaphore }()
 		if _, known := rumored.LoadOrStore(key, true); known {
 			return

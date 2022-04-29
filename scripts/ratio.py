@@ -36,6 +36,8 @@ for kdx in xrange(len(kinds)):
     axs[kdx].set_title("ratio (dht/peers)")
   axs[kdx].hist(bins, bins=nbins)
 plt.savefig("fig.svg")
+plt.yscale('log')
+plt.savefig("fig-logy.svg")
 
 print results
 
