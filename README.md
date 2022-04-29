@@ -1,8 +1,8 @@
 # Yggdrasil map
 
-  * Internet: https://yggdrasil-map.cwinfo.org
-  * Hyperboria: https://yggdrasil-map.h.cwinfo.org
-  * Yggdrasil Network: https://yggdrasil-map.y.cwinfo.org
+  * Internet: https://yggdrasil-map.cwinfo.net
+  * Hyperboria: https://yggdrasil-map.h.cwinfo.net
+  * Yggdrasil Network: https://yggdrasil-map.y.cwinfo.net
 
 Forked from the code for http://www.fc00.org (http://h.fc00.org on Hyperboria).
 
