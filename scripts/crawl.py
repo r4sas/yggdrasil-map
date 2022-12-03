@@ -16,23 +16,23 @@ else:
   sockaddr = "/var/run/yggdrasil.sock"
 
 def getNodeInfoRequest(key):
-  return '{{"keepalive":true, "request":"getNodeInfo", "key":"{}"}}'.format(key)
+  return '{{"keepalive":true, "request":"getNodeInfo", "arguments": {{"key":"{}"}}}}'.format(key)
 
 def getSelfRequest(key):
-  return '{{"keepalive":true, "request":"debug_remoteGetSelf", "key":"{}"}}'.format(key)
+  return '{{"keepalive":true, "request":"debug_remoteGetSelf", "arguments": {{"key":"{}"}}}}'.format(key)
 
 def getPeersRequest(key):
-  return '{{"keepalive":true, "request":"debug_remoteGetPeers", "key":"{}"}}'.format(key)
+  return '{{"keepalive":true, "request":"debug_remoteGetPeers", "arguments": {{"key":"{}"}}}}'.format(key)
 
 def getDHTRequest(key):
-  return '{{"keepalive":true, "request":"debug_remoteGetDHT", "key":"{}"}}'.format(key)
+  return '{{"keepalive":true, "request":"debug_remoteGetDHT", "arguments": {{"key":"{}"}}}}'.format(key)
 
 def doRequest(req):
   try:
     ygg = socket.socket(socktype, socket.SOCK_STREAM)
     ygg.connect(sockaddr)
     ygg.send(req)
-    data = json.loads(ygg.recv(1024*15))
+    data = json.loads(ygg.recv(1048576))
     return data
   except:
     return None
@@ -85,7 +85,7 @@ def handleNodeInfoResponse(publicKey, data):
 
 # Get self info
 selfInfo = doRequest('{"keepalive":true, "request":"getSelf"}')
-for k,v in selfInfo['response']['self'].iteritems(): rumored.add(v['key'])
+rumored.add(selfInfo['response']['key'])
 
 # Initialize dicts of visited/rumored nodes
 #for k,v in selfInfo['response']['self'].iteritems(): rumored[k] = v

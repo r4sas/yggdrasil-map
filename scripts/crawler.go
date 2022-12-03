@@ -9,8 +9,6 @@ import (
 )
 
 var waitgroup sync.WaitGroup
-var visited sync.Map
-var rumored sync.Map
 
 const MAX_RETRY = 3
 const N_PARALLEL_REQ = 32
@@ -29,7 +27,9 @@ func getRequest(key, request string) map[string]interface{} {
 	return map[string]interface{}{
 		"keepalive": true,
 		"request":   request,
-		"key":       key,
+		"arguments": map[string]interface{}{
+			"key": key,
+		},
 	}
 }
 
@@ -99,13 +99,6 @@ func doRumor(key string, out chan rumorResult) {
 		defer waitgroup.Done()
 		semaphore <- struct{}{}
 		defer func() { <-semaphore }()
-		if _, known := rumored.LoadOrStore(key, true); known {
-			return
-		}
-		defer rumored.Delete(key)
-		if _, known := visited.Load(key); known {
-			return
-		}
 		results := make(map[string]interface{})
 		if res, ok := getNodeInfo(key)["response"]; ok {
 			for addr, v := range res.(map[string]interface{}) {
@@ -136,9 +129,6 @@ func doRumor(key string, out chan rumorResult) {
 				}
 				if keys, ok := vm["keys"]; ok {
 					results["peers"] = keys
-					for _, key := range keys.([]interface{}) {
-						doRumor(key.(string), out)
-					}
 				}
 			}
 		}
@@ -150,18 +140,13 @@ func doRumor(key string, out chan rumorResult) {
 				}
 				if keys, ok := vm["keys"]; ok {
 					results["dht"] = keys
-					for _, key := range keys.([]interface{}) {
-						doRumor(key.(string), out)
-					}
 				}
 			}
 		}
 		if len(results) > 0 {
-			if _, known := visited.LoadOrStore(key, true); known {
-				return
-			}
 			results["time"] = time.Now().Unix()
 			out <- rumorResult{key, results}
+			waitgroup.Add(1)
 		}
 	}()
 }
@@ -171,10 +156,16 @@ func doPrinter() (chan rumorResult, chan struct{}) {
 	done := make(chan struct{})
 	go func() {
 		defer close(done)
+		visited := make(map[string]struct{})
 		fmt.Println("{\"yggnodes\": {")
 		var notFirst bool
 		for result := range results {
 			// TODO correct output
+			if _, isIn := visited[result.key]; isIn {
+				waitgroup.Done()
+				continue
+			}
+			visited[result.key] = struct{}{}
 			res, err := json.Marshal(result.res)
 			if err != nil {
 				panic(err)
@@ -184,6 +175,31 @@ func doPrinter() (chan rumorResult, chan struct{}) {
 			}
 			fmt.Printf("\"%s\": %s", result.key, res)
 			notFirst = true
+			toVisit := make(map[string]struct{})
+			if peers, isIn := result.res["peers"]; isIn {
+				if ks, ok := peers.([]interface{}); ok {
+					for _, k := range ks {
+						if key, ok := k.(string); ok {
+							toVisit[key] = struct{}{}
+						}
+					}
+				}
+			}
+			if dht, isIn := result.res["dht"]; isIn {
+				if ks, ok := dht.([]interface{}); ok {
+					for _, k := range ks {
+						if key, ok := k.(string); ok {
+							toVisit[key] = struct{}{}
+						}
+					}
+				}
+			}
+			for k := range toVisit {
+				if _, isIn := visited[k]; !isIn {
+					doRumor(k, results)
+				}
+			}
+			waitgroup.Done()
 		}
 		fmt.Println("\n}}")
 	}()
@@ -192,11 +208,9 @@ func doPrinter() (chan rumorResult, chan struct{}) {
 
 func main() {
 	self := doRequest(map[string]interface{}{"keepalive": true, "request": "getSelf"})
-	res := self["response"].(map[string]interface{})["self"].(map[string]interface{})
+	res := self["response"].(map[string]interface{})
 	var key string
-	for _, v := range res {
-		key = v.(map[string]interface{})["key"].(string)
-	}
+	key = res["key"].(string)
 	results, done := doPrinter()
 	doRumor(key, results)
 	waitgroup.Wait()
