@@ -63,6 +63,9 @@ func doRequest(request map[string]interface{}) map[string]interface{} {
 		}
 		// TODO parse res, check if there's an error
 		if res, ok := res["response"]; ok {
+			if _, ok := res.(map[string]interface{}); !ok {
+				continue
+			}
 			if _, isIn := res.(map[string]interface{})["error"]; isIn {
 				continue
 			}
@@ -101,6 +104,9 @@ func doRumor(key string, out chan rumorResult) {
 		defer func() { <-semaphore }()
 		results := make(map[string]interface{})
 		if res, ok := getNodeInfo(key)["response"]; ok {
+			if _, ok := res.(map[string]interface{}); !ok {
+				return
+			}
 			for addr, v := range res.(map[string]interface{}) {
 				vm, ok := v.(map[string]interface{})
 				if !ok {
@@ -111,6 +117,9 @@ func doRumor(key string, out chan rumorResult) {
 			}
 		}
 		if res, ok := getSelf(key)["response"]; ok {
+			if _, ok := res.(map[string]interface{}); !ok {
+				return
+			}
 			for _, v := range res.(map[string]interface{}) {
 				vm, ok := v.(map[string]interface{})
 				if !ok {
@@ -122,6 +131,9 @@ func doRumor(key string, out chan rumorResult) {
 			}
 		}
 		if res, ok := getPeers(key)["response"]; ok {
+			if _, ok := res.(map[string]interface{}); !ok {
+				return
+			}
 			for _, v := range res.(map[string]interface{}) {
 				vm, ok := v.(map[string]interface{})
 				if !ok {
@@ -133,6 +145,9 @@ func doRumor(key string, out chan rumorResult) {
 			}
 		}
 		if res, ok := getDHT(key)["response"]; ok {
+			if _, ok := res.(map[string]interface{}); !ok {
+				return
+			}
 			for _, v := range res.(map[string]interface{}) {
 				vm, ok := v.(map[string]interface{})
 				if !ok {
