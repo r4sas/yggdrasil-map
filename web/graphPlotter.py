@@ -38,7 +38,7 @@ def canonalize_ip(ip):
 def load_db():
     #with open('nodedb/nodes') as f:
     #    return dict([ (canonalize_ip(v[0]), v[1]) for v in [ l.split(None)[:2] for l in f.readlines() ] if len(v) > 1 ])
-    url = "http://[316:c51a:62a3:8b9::2]/results.json"
+    url = "http://[316:c51a:62a3:8b9::2]/result.json"
     f = urllib.request.urlopen(url)
     return dict(
         [
@@ -107,8 +107,8 @@ def _gradient_color(ratio, colors):
 
     ratio = (ratio - gap_num * jump) * (len(colors) - 1)
 
-    r = a[0] + (b[0] - a[0]) * ratio
-    g = a[1] + (b[1] - a[1]) * ratio
-    b = a[2] + (b[2] - a[2]) * ratio
+    r = int(a[0] + (b[0] - a[0]) * ratio)
+    g = int(a[1] + (b[1] - a[1]) * ratio)
+    b = int(a[2] + (b[2] - a[2]) * ratio)
 
     return '#%02x%02x%02x' % (r, g, b)
