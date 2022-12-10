@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 import graphPlotter
-import cgi
+import html
 
-import urllib, json
-#url = "http://y.yakamo.org:3000/current"
-url = "current"
+import urllib.request, json
+url = "http://[316:c51a:62a3:8b9::2]/result.json"
+#url = "current"
 
 # nodes indexed by coords
 class NodeInfo:
@@ -29,7 +29,7 @@ class LinkInfo:
     self.b = b # NodeInfo
 
 def generate_graph(time_limit=60*60*3):
-    response = urllib.urlopen(url)
+    response = urllib.request.urlopen(url)
     data = json.loads(response.read())["yggnodes"]
 
     toAdd = []
@@ -45,7 +45,7 @@ def generate_graph(time_limit=60*60*3):
             if len(label) <= 64:
               info.label = label
       except: pass
-      info.label = cgi.escape(info.label)
+      info.label = html.escape(info.label)
       toAdd.append(info)
 
     nodes = dict()
@@ -67,7 +67,7 @@ def generate_graph(time_limit=60*60*3):
       if node.coords == node.getParent: continue
       edges.append(LinkInfo(node, nodes[node.getParent()]))
 
-    print '%d nodes, %d edges' % (len(nodes), len(edges))
+    print('%d nodes, %d edges' % (len(nodes), len(edges)))
 
     graph = graphPlotter.position_nodes(nodes, edges)
     js = graphPlotter.get_graph_json(graph)

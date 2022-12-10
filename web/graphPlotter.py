@@ -3,7 +3,7 @@ import time
 import json
 import networkx as nx
 from networkx.algorithms import centrality
-import urllib
+import urllib.request
 
 def position_nodes(nodes, edges):
     G = pgv.AGraph(strict=True, directed=False, size='10!')
@@ -38,9 +38,18 @@ def canonalize_ip(ip):
 def load_db():
     #with open('nodedb/nodes') as f:
     #    return dict([ (canonalize_ip(v[0]), v[1]) for v in [ l.split(None)[:2] for l in f.readlines() ] if len(v) > 1 ])
-    url = "https://raw.githubusercontent.com/yakamok/yggdrasil-nodelist/master/nodelist"
-    f = urllib.urlopen(url)
-    return dict([ (canonalize_ip(v[0]), v[1]) for v in [ l.split(None)[:2] for l in f.readlines() ] if len(v) > 1 ])
+    url = "http://[316:c51a:62a3:8b9::2]/results.json"
+    f = urllib.request.urlopen(url)
+    return dict(
+        [
+            (canonalize_ip(v[0]), v[1]) for v in
+                [
+                    l.split(None)[:2] for l in
+                        json.loads(f.read())["yggnodes"].keys()
+                ]
+            if len(v) > 1
+        ]
+    )
 
 def get_graph_json(G):
     max_neighbors = 1
@@ -48,7 +57,7 @@ def get_graph_json(G):
         neighbors = len(G.neighbors(n))
         if neighbors > max_neighbors:
             max_neighbors = neighbors
-    print 'Max neighbors: %d' % max_neighbors
+    print('Max neighbors: %d' % max_neighbors)
 
     out_data = {
         'created': int(time.time()),
