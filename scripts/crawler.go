@@ -24,10 +24,10 @@ func dial() (net.Conn, error) {
 }
 
 func getRequest(key, request string) map[string]interface{} {
-	return map[string]interface{}{
+	return map[string]interface{} {
 		"keepalive": true,
 		"request":   request,
-		"arguments": map[string]interface{}{
+		"arguments": map[string]interface{} {
 			"key": key,
 		},
 	}
@@ -107,12 +107,11 @@ func doRumor(key string, out chan rumorResult) {
 			if _, ok := res.(map[string]interface{}); !ok {
 				return
 			}
-			for addr, v := range res.(map[string]interface{}) {
+			for _, v := range res.(map[string]interface{}) {
 				vm, ok := v.(map[string]interface{})
 				if !ok {
 					return
 				}
-				results["address"] = addr
 				results["nodeinfo"] = vm
 			}
 		}
@@ -120,7 +119,7 @@ func doRumor(key string, out chan rumorResult) {
 			if _, ok := res.(map[string]interface{}); !ok {
 				return
 			}
-			for _, v := range res.(map[string]interface{}) {
+			for addr, v := range res.(map[string]interface{}) {
 				vm, ok := v.(map[string]interface{})
 				if !ok {
 					return
@@ -128,6 +127,7 @@ func doRumor(key string, out chan rumorResult) {
 				if coords, ok := vm["coords"]; ok {
 					results["coords"] = coords
 				}
+				results["address"] = addr
 			}
 		}
 		if res, ok := getPeers(key)["response"]; ok {
